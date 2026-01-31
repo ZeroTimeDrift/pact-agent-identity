@@ -1,0 +1,193 @@
+# Agent Manifest JSON Schema v0.1.0
+# Validates agent capability manifests
+
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://agentmanifest.org/schema/v0.1"
+title: "Agent Manifest"
+description: "Signed capability declaration for AI agents"
+type: object
+
+required:
+  - version
+  - agent
+  - human
+  - signature
+
+properties:
+  version:
+    type: string
+    pattern: "^\\d+\\.\\d+\\.\\d+$"
+    description: "Semantic version of manifest format"
+    
+  schema:
+    type: string
+    format: uri
+    description: "URI to schema definition"
+    
+  agent:
+    type: object
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        minLength: 1
+        maxLength: 64
+        pattern: "^[a-zA-Z0-9_-]+$"
+        description: "Agent username"
+      platform:
+        type: string
+        enum: ["moltbook", "clawdbot", "other"]
+        default: "moltbook"
+      profile:
+        type: string
+        format: uri
+        description: "Link to agent profile"
+      created:
+        type: string
+        format: date-time
+        
+  human:
+    type: object
+    required:
+      - x_handle
+    properties:
+      name:
+        type: string
+        description: "Human's display name"
+      x_handle:
+        type: string
+        pattern: "^[a-zA-Z0-9_]+$"
+        description: "Twitter/X handle (without @)"
+      x_verified:
+        type: boolean
+        default: false
+      claimed_at:
+        type: string
+        format: date-time
+        
+  capabilities:
+    type: object
+    properties:
+      tools:
+        type: array
+        items:
+          type: object
+          required:
+            - id
+          properties:
+            id:
+              type: string
+              description: "Tool identifier"
+            provider:
+              type: string
+            status:
+              type: string
+              enum: ["active", "pending", "disabled"]
+              default: "active"
+            scopes:
+              type: array
+              items:
+                type: string
+            # Extensible - additional properties allowed
+          additionalProperties: true
+      domains:
+        type: array
+        items:
+          type: string
+        description: "Knowledge/expertise domains"
+      languages:
+        type: array
+        items:
+          type: string
+          pattern: "^[a-z]{2}(-[A-Z]{2})?$"
+        description: "ISO language codes"
+        
+  trust:
+    type: object
+    properties:
+      root:
+        type: object
+        required:
+          - type
+          - human
+        properties:
+          type:
+            type: string
+            enum: ["moltbook_claim", "manual", "other"]
+          human:
+            type: string
+            description: "X handle of claiming human"
+          verified_at:
+            type: string
+            format: date-time
+          proof:
+            type: string
+            format: uri
+            description: "Link to verification proof"
+      vouches:
+        type: array
+        items:
+          type: object
+          required:
+            - agent
+            - type
+          properties:
+            agent:
+              type: string
+              description: "Vouching agent name"
+            type:
+              type: string
+              enum: ["identity_vouch", "capability_vouch", "general_vouch"]
+            capability:
+              type: string
+              description: "Specific capability being vouched"
+            vouched_at:
+              type: string
+              format: date-time
+            signature:
+              type: string
+              description: "Vouch signature hash"
+              
+  manifest:
+    type: object
+    description: "Manifest versioning metadata"
+    properties:
+      version:
+        type: integer
+        minimum: 1
+        description: "Incrementing version number"
+      updated_at:
+        type: string
+        format: date-time
+      previous_hash:
+        type: string
+        pattern: "^sha256:[a-f0-9]{64}$"
+        description: "Hash of previous manifest version"
+        
+  signature:
+    type: object
+    required:
+      - content_hash
+      - signed_by
+    properties:
+      algorithm:
+        type: string
+        enum: ["sha256", "sha512"]
+        default: "sha256"
+      content_hash:
+        type: string
+        pattern: "^sha256:[a-f0-9]{64}$"
+        description: "Hash of manifest content (excluding signature block)"
+      signed_by:
+        type: string
+        description: "X handle of signer"
+      signed_at:
+        type: string
+        format: date-time
+      proof:
+        type: string
+        format: uri
+        description: "Link to public proof (tweet, signed message)"
+
+additionalProperties: false
