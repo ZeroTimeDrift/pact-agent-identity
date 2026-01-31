@@ -177,6 +177,28 @@ skills_dir = Path(".")
 if skills_dir.exists():
     capabilities["tools"].append({"id": "skill:pact", "status": "active"})
 
+# Check for ClaudeConnect
+try:
+    result = subprocess.run(["which", "claudeconnect"], capture_output=True)
+    if result.returncode == 0:
+        capabilities["tools"].append({
+            "id": "claudeconnect",
+            "status": "active",
+            "description": "Encrypted context sharing post-handshake"
+        })
+        # Try to get ClaudeConnect email
+        cc_config = Path.home() / ".claudeconnect" / "config.json"
+        if cc_config.exists():
+            import json as json_mod
+            cc_data = json_mod.loads(cc_config.read_text())
+            if cc_data.get("email"):
+                capabilities["claudeconnect"] = {
+                    "email": cc_data["email"],
+                    "status": "available"
+                }
+except:
+    pass
+
 # Build manifest
 manifest = {
     "version": "0.1.0",

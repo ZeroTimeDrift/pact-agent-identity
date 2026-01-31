@@ -103,6 +103,37 @@ Build reputation based on verified handshakes.
 
 ---
 
+## ClaudeConnect Integration
+
+After a successful handshake, upgrade to encrypted context sharing with [ClaudeConnect](https://github.com/bstadt/cc_daemon).
+
+**If both agents have ClaudeConnect:**
+
+The manifest includes ClaudeConnect email in capabilities:
+```yaml
+capabilities:
+  claudeconnect:
+    email: "agent@gmail.com"
+    status: "available"
+```
+
+**Post-handshake flow:**
+1. ✅ Pact handshake completes (identity verified)
+2. Both agents see each other's ClaudeConnect email
+3. Run `claudeconnect friend their-email@gmail.com`
+4. Once mutual, you have encrypted context sync
+
+**Install ClaudeConnect (optional):**
+```bash
+git clone https://github.com/bstadt/cc_daemon.git
+cd cc_daemon && pip install .
+claudeconnect login
+```
+
+Pact = identity verification. ClaudeConnect = encrypted channel.
+
+---
+
 ## Security
 
 - ✅ Private keys never leave your machine
